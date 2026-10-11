@@ -1,49 +1,85 @@
 # My Weight Journal
 
-A small Python + Streamlit project. Visitors can try a **public demo with fictional numbers**. Anyone can sign in with **their own email code** and save only their own records. Supabase stores progress in the cloud. Database Row Level Security (RLS) isolates users' rows.
+A simple weight-tracking web app I built with Python and Streamlit. I wanted a place to log daily progress, check off completed days, and see changes over time without using a spreadsheet.
 
-## Before changing your existing deployed app
+**[Try the live app](https://weight-loss-tracker.streamlit.app/)**
 
-**Back up any real entries from the old app first.** Open the old app, download its CSV, and save it privately. After switching to the new code, those old SQLite entries are NOT automatically migrated. Delete any existing real measurements from source files, Git history and any unintended public database exposures as appropriate. A public repository's old history may still contain old constants even after edits.
+The public page uses **fictional demo data**. Personal records are available after email sign-in once Supabase is configured for the deployed app.
 
-## Setup — once
+## Features
 
-1. Create a free project at https://supabase.com/dashboard .
-2. Open **SQL Editor** and run the entire `schema.sql` file. It creates `journal_settings` and `journal_progress` with per-user RLS. Do not omit this step.
-3. In Supabase **Authentication → Providers → Email**, enable email sign-in. If you want one-time numeric codes, in **Authentication → Email Templates → Magic Link** replace the link with `{{ .Token }}` so the email contains a code. (Dashboard labels can change.) Default Supabase Auth mail limits are small; for wider public use, configure a real SMTP provider.
-4. In **Project Settings → API** (or **Connect → API keys**) copy your Project URL and **publishable / anon key**. Never use the `service_role` or secret key in this app.
-5. For local development, copy `.streamlit/secrets.toml.example` to `.streamlit/secrets.toml` and fill in the values. The real secrets file is ignored by Git.
-6. Install and run:
+- Daily check-ins with editable goals, actual weight, notes, and checkboxes
+- Weight progress chart and check-in progress
+- Automatic BMI calculation from weight (lb) and height (cm)
+- WHO adult BMI categories: Underweight, Normal weight, Overweight, and Obesity
+- Public demo view with sample data
+- Email-code sign-in and separate personal records for each account
+- CSV import and export for backups
 
-   ```powershell
+## Built with
+
+- **Python** — app logic and calculations
+- **Streamlit** — web interface
+- **Pandas** — data handling and charts
+- **Supabase** — email authentication and PostgreSQL storage
+
+## Run locally
+
+1. Clone the repository and open the project folder:
+
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/weight-tracker-python.git
+   cd weight-tracker-python
+   ```
+
+   Replace `YOUR_USERNAME` with your GitHub username.
+
+2. Install dependencies:
+
+   ```bash
    python -m pip install -r requirements.txt
+   ```
+
+3. Run the app:
+
+   ```bash
    python -m streamlit run app.py
    ```
 
-7. Commit the updated `app.py`, `requirements.txt`, `schema.sql`, `README.md`, and `.gitignore` to your existing GitHub repository. Add these values in **Streamlit Community Cloud → app → Settings → Secrets** instead of committing them:
+4. Open the local URL shown in the terminal (usually `http://localhost:8501`). Without Supabase configuration, you can still explore the public demo.
+
+## Set up email login
+
+1. Create a Supabase project at [supabase.com](https://supabase.com/dashboard).
+2. Run `schema.sql` in the Supabase **SQL Editor**. It creates the user-specific tables and Row Level Security (RLS) policies.
+3. Enable **Email** in Supabase Authentication. For numeric email codes, update the relevant email template to contain `{{ .Token }}` instead of only a magic link.
+4. Create `.streamlit/secrets.toml` using the example file `.streamlit/secrets.toml.example`:
 
    ```toml
    supabase_url = "https://YOUR_PROJECT.supabase.co"
    supabase_anon_key = "YOUR_PUBLISHABLE_OR_ANON_KEY"
    ```
 
-8. Reboot/redeploy the app, then send a login code to your own email and sign in. Sign in separately from any other email to test isolation. You can import your old CSV under **Export and restore** after logging in.
+5. Restart the app. For the deployed version, enter the same two settings under **Streamlit Community Cloud → App settings → Secrets** and restart the deployment.
+6. Test two different email accounts to confirm that each account can only view and edit its own records.
 
-## How privacy works
+**Never commit `secrets.toml`, private measurements, passwords, or a Supabase secret/service-role key.** The client uses a publishable/anon key with user-specific authentication and RLS. Before publishing, verify that `.gitignore` excludes local database and secrets files.
 
-- Logged-out visitors only see hardcoded **fictional demo data**. No private table is queried.
-- Each account is tied to a Supabase Auth user ID, never just a user-typed email string.
-- Every database request carries that signed-in user's access token. Postgres RLS checks `auth.uid() = user_id` on all reads/writes. No service-role key is used.
-- Login session is kept in Streamlit's session state. You may need to log in again after closing the browser/restarting the app.
-- Each user can save personal height, starting weight, goal and daily data. Those values are not published to GitHub.
-- The site is **publicly reachable**, but the personal data is protected by email sign-in plus RLS. It's not a medical record system; the app operator/Supabase administrators may have database access.
-- Anyone with an email can register unless you disable registrations in Supabase Auth. You can restrict signups later if desired.
+## Privacy notes
 
-## Files
+The demo does not read private records. After login, the app uses the account's authentication token and Supabase RLS to restrict access to the signed-in user's records. The website itself is publicly accessible; it is not a private or medically certified health service. Do not assume data isolation is verified until the two-account test succeeds.
 
-- `app.py`: the web app, login and data views
-- `schema.sql`: protected database tables and policies
-- `.streamlit/secrets.toml.example`: safe settings template
-- `requirements.txt`: Python packages
+BMI is a general screening tool, not a medical diagnosis. The sample tracking calendar currently covers October 10 – December 18, 2026.
 
-BMI uses standard WHO adult categories and is a screening measure, not a diagnosis. Plan dates currently run from 2026-10-10 through 2026-12-18.
+## Project files
+
+| File | Purpose |
+| --- | --- |
+| `app.py` | Main Streamlit app |
+| `schema.sql` | Supabase database tables and RLS policies |
+| `requirements.txt` | Python dependencies |
+| `.streamlit/secrets.toml.example` | Configuration template (no actual credentials) |
+
+## Next steps
+
+I'd like to keep improving the UI, make the tracking dates more flexible, and add more progress summaries.
