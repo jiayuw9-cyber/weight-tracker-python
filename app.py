@@ -22,9 +22,9 @@ def get_bmi_status(bmi):
 # My starting plan. You can edit these values in the sidebar.
 START_DATE = date(2026, 10, 10)
 END_DATE = date(2026, 12, 18)
-START_WEIGHT = 165.4
-GOAL_WEIGHT = 144.0
-HEIGHT_CM = 169.0
+START_WEIGHT = 200.0
+GOAL_WEIGHT = 100.0
+HEIGHT_CM = 170.0
 DB_PATH = Path(__file__).with_name("my_progress.db")
 
 st.set_page_config(page_title="My Weight Journal", page_icon="🌷", layout="centered")
