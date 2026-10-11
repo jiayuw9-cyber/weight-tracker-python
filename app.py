@@ -118,6 +118,32 @@ def refresh_session():
     st.session_state.pop("session", None)
     return False
 
+def handle_magic_link():
+    params = st.query_params
+    code = params.get("code")
+
+    if not code:
+        return
+
+    try:
+        session = api_request(
+            "POST",
+            "/auth/v1/token?grant_type=pkce",
+            {"auth_code": code}
+        )
+
+        if not session or not session.get("access_token"):
+            raise RuntimeError("Login failed.")
+
+        st.session_state["session"] = session
+        st.session_state.pop("login_email", None)
+        st.query_params.clear()
+        st.rerun()
+
+    except RuntimeError:
+        st.query_params.clear()
+        st.error("Sign-in link could not be verified.")
+
 
 def private_request(method, table, *, params=None, payload=None, extra_headers=None):
     endpoint = f"/rest/v1/{table}"
@@ -181,7 +207,7 @@ def demo_rows():
         {"day": "2026-10-12", "goal_lb": 159.7, "actual_lb": 159.9, "checked": False, "note": "Demo entry"},
     ]
 
-
+handle_magic_link()
 st.title("🌷 My Weight Journal")
 st.write("A simple place to track weight, one day at a time.")
 
