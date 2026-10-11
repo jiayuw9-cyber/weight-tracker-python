@@ -1,9 +1,7 @@
-__pycache__/
-*.pyc
-.venv/
-.env
 .streamlit/secrets.toml
 *.db
-*.db-shm
-*.db-wal
-weight_journal_backup*.csv
+*.sqlite*
+__pycache__/
+.venv/
+.env
+*.csv
