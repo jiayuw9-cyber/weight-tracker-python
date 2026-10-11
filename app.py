@@ -8,6 +8,16 @@ from pathlib import Path
 
 import pandas as pd
 import streamlit as st
+#BMI status categories based on WHO standards
+def get_bmi_status(bmi):
+    if bmi < 18.5:
+        return "Underweight"
+    elif bmi < 25:
+        return "Normal weight"
+    elif bmi < 30:
+        return "Overweight"
+    else:
+        return "Obesity"
 
 # My starting plan. You can edit these values in the sidebar.
 START_DATE = date(2026, 10, 10)
@@ -59,7 +69,7 @@ with st.sidebar:
     goal_weight = st.number_input("Goal weight (lb)", min_value=50.0, max_value=500.0, value=GOAL_WEIGHT, step=0.1)
     st.caption("Your height and starting goal settings apply to this session. Saved daily goals can be edited below.")
 
-st.title("🌷 My Weight Journal")
+st.title("My Weight Journal")
 st.write("A simple place to track my weight, one day at a time.")
 
 conn = connect()
@@ -84,7 +94,22 @@ m3.metric("Checked days", f"{checked_count}/{len(records)}")
 st.progress(checked_count / len(records))
 st.caption("BMI is just a general screening number. It doesn't measure body composition or health on its own.")
 
-st.subheader("📅 Daily check-in")
+# BMI health status
+bmi = bmi_from_lb(current_weight, height)
+status = get_bmi_status(bmi)
+
+st.subheader("BMI Health Status")
+st.write(f"Your BMI: {bmi:.1f}")
+st.write(f"Category: {status}")
+
+st.write("WHO Adult BMI Classification")
+
+st.write("Underweight: Below 18.5")
+st.write("Normal weight: 18.5 - 24.9")
+st.write("Overweight: 25.0 - 29.9")
+st.write("Obesity: 30.0 or higher")
+
+st.subheader("Daily check-in")
 week_count = (len(days) + 6) // 7
 week = st.selectbox("Choose a week", range(week_count), format_func=lambda x: f"Week {x + 1} · {days[x * 7]:%m/%d} – {days[min(x * 7 + 6, len(days) - 1)]:%m/%d}")
 week_days = days[week * 7: (week + 1) * 7]
@@ -114,14 +139,14 @@ for d in week_days:
                     conn.commit()
                     st.rerun()
 
-st.subheader("📈 My progress")
+st.subheader("My progress")
 chart = records.set_index("day")[["goal_lb", "actual_lb"]].rename(columns={"goal_lb": "Goal", "actual_lb": "Actual"})
 st.line_chart(chart)
 if not actuals.empty:
     last7 = actuals.tail(7)["actual_lb"].mean()
     st.write(f"Average of my latest {min(7, len(actuals))} weigh-ins: **{last7:.1f} lb**")
 
-st.subheader("💾 Back up my data")
+st.subheader("Back up my data")
 st.caption("The SQLite database saves records on the computer running this app. Cloud hosts may erase local files when restarting, so keep a CSV backup.")
 backup = records.copy()
 backup["day"] = backup["day"].astype(str)
